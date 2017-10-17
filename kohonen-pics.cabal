@@ -1,0 +1,22 @@
+name:                kohonen-pics
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/SRechenberger/kohonen-pics#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Sascha Rechenberger
+maintainer:          sascha.rechenberger@uni-ulm.de
+copyright:           Copyright: (c) 2017 Sascha Rechenberger
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+extra-source-files:  README.md
+
+executable kohonen-pics
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  other-modules:       SOM
+  build-depends:       base >= 4.7 && < 5, vector, MonadRandom, random, JuicyPixels, JuicyPixels-extra
+  ghc-options:         -Wall
