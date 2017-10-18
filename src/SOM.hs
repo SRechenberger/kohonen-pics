@@ -60,13 +60,15 @@ dist :: Int -> Int -> Double
 dist a b = toEnum (abs $ a-b)
 
 neighbour :: Int -> (Int -> Double) -> Int -> Int -> Double
-neighbour t s g1 g2 = exp (-dist g1 g2/(2*s t^2))
+neighbour t s g1 g2 = 1 -- 0.1 * exp (-dist g1 g2/(2*s t^2))
 
 learnStep :: SOM -> Int -> (Int -> Double) -> (Int -> Double) -> Vector Double -> SOM
 learnStep som@(SOM neurons) t l s x = SOM
     $ map (\(i,c)
       -> ( i
-         , add c (Vector.map ((l t * neighbour t s i winner) *) (sub x c))))
+         , if i == winner
+            then add c (Vector.map (l t *) (sub x c))
+            else c))
     $ neurons
   where
     winner = winnerNeuron som x
@@ -81,5 +83,5 @@ learn' som n t l s (x:xs) processed
 learn :: SOM -> Int -> [Vector Double] -> SOM
 learn som n inputs = learn' som n 1 l s inputs []
   where
-    l t = (toEnum t / toEnum n)^2-- 1 * (0.01/1)**(toEnum t / toEnum n)
+    l t = 1 / (1 +  2**(-toEnum t * 0.1))
     s t = (toEnum t / toEnum n)^2
