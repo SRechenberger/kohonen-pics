@@ -15,7 +15,7 @@ import qualified Data.Vector.Storable as V
 
 import Control.Monad (forM, forM_)
 
-size = 64
+size = 128
 
 main :: IO ()
 main = do
@@ -38,7 +38,7 @@ main = do
   som <- initSOM (size * size * 3) (read n) (0.0, 255.0)
 
   putStrLn "Learning..."
-  let som' = learn som (length vecs * 100000) (map snd vecs)
+  let som' = learn som (length vecs * 300) (map snd vecs)
 
   putStrLn "Querying..."
   forM_ vecs $ \(path, vec) -> do
@@ -46,7 +46,7 @@ main = do
     putStrLn $ path ++ "\t" ++ show w
 
   putStrLn "Printing Prototypes..."
-  forM_ (somNeurons som) $ \(index, vec) -> do
+  forM_ (somNeurons som') $ \(index, vec) -> do
     let pic = ImageRGB8
             $ Image size size
             $ V.map (toEnum . fromEnum)

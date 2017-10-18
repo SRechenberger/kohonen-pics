@@ -35,6 +35,11 @@ dot v1 v2
   | Vector.length v1 == Vector.length v2 = Vector.sum $ Vector.zipWith (*) v1 v2
   | otherwise = error "Vector lengths do not match."
 
+distance :: (Floating num, Vector.Storable num, Num num) => Vector num -> Vector num -> num
+distance v1 v2
+  | Vector.length v1 == Vector.length v2 = sqrt $ Vector.sum $ Vector.map (^2) $ Vector.zipWith (-) v1 v2
+  | otherwise = error "Vector lenght do not match."
+
 add :: (Vector.Storable num, Num num) => Vector num -> Vector num -> Vector num
 add v1 v2
   | Vector.length v1 == Vector.length v2 = Vector.zipWith (+) v1 v2
@@ -49,18 +54,25 @@ findNearest :: (Ord value) => Map position value -> position
 findNearest = fst . minimumBy (compare `on` snd)
 
 winnerNeuron :: SOM -> Vector Double -> Int
-winnerNeuron (SOM neurons) input = findNearest . map (\(i,x) -> (i,dot input x)) $ neurons
+winnerNeuron (SOM neurons) input = findNearest . map (\(i,x) -> (i,distance input x)) $ neurons
 
 dist :: Int -> Int -> Double
-dist a b = toEnum (abs $ a-b) ^ 2
+dist a b = toEnum (abs $ a-b)
 
 neighbour :: Int -> (Int -> Double) -> Int -> Int -> Double
 neighbour t s g1 g2 = exp (-dist g1 g2/(2*s t^2))
 
 learnStep :: SOM -> Int -> (Int -> Double) -> (Int -> Double) -> Vector Double -> SOM
-learnStep som@(SOM neurons) t l s x = SOM $ map (\(i,c) -> (i,add c (Vector.map ((l t * neighbour t s i winner) *) (sub x c)))) neurons
+learnStep som@(SOM neurons) t l s x = SOM
+    $ map (\(i,c)
+      -> ( i
+         , if i == winner
+            then add c (Vector.map (l t *) (sub x c))
+            else c {- add c (Vector.map (l t *) (sub c x)) -}))
+    $ neurons
   where
     winner = winnerNeuron som x
+-- SOM $ map (\(i,c) -> (i,add c (Vector.map ((l t * neighbour t s i winner) *) (sub x c)))) neurons
 
 learn' :: SOM -> Int -> Int -> (Int -> Double) -> (Int -> Double) -> [Vector Double] -> [Vector Double] -> SOM
 learn' som n t l s [] processed = learn' som n t l s (reverse processed) []
@@ -71,5 +83,5 @@ learn' som n t l s (x:xs) processed
 learn :: SOM -> Int -> [Vector Double] -> SOM
 learn som n inputs = learn' som n 1 l s inputs []
   where
-    l t = 10 * (0.1/10)**(toEnum t / toEnum n)
-    s t = 3 * (0.1/3)**(toEnum t / toEnum n)
+    l t = (toEnum t/toEnum n)^2-- 1 * (0.01/1)**(toEnum t / toEnum n)
+    s t = 0.5 * (0.01/0.5)**(toEnum t / toEnum n)
