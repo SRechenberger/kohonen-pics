@@ -38,7 +38,7 @@ main = do
   som <- initSOM (size * size * 3) (read n) (0.0, 255.0)
 
   putStrLn "Learning..."
-  let som' = learn som (length vecs * 1000) (map snd vecs)
+  som' <- learn som (length vecs * 1000) (map snd vecs)
 
   putStrLn "Querying..."
   forM_ vecs $ \(path, vec) -> do

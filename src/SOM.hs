@@ -74,14 +74,15 @@ learnStep som@(SOM neurons) t l s x = SOM
     winner = winnerNeuron som x
 -- SOM $ map (\(i,c) -> (i,add c (Vector.map ((l t * neighbour t s i winner) *) (sub x c)))) neurons
 
-learn' :: SOM -> Int -> Int -> (Int -> Double) -> (Int -> Double) -> [Vector Double] -> [Vector Double] -> SOM
-learn' som n t l s [] processed = learn' som n t l s (reverse processed) []
-learn' som n t l s (x:xs) processed
-  | n > t = learn' (learnStep som t l s x) n (t+1) l s xs (x:processed)
-  | otherwise = som
+learn' :: MonadRandom m => SOM -> Int -> Int -> (Int -> Double) -> (Int -> Double) -> [Vector Double] -> m SOM
+learn' som n t l s samples
+  | n > t = do
+      x <- uniform samples
+      learn' (learnStep som t l s x) n (t+1) l s samples
+  | otherwise = pure som
 
-learn :: SOM -> Int -> [Vector Double] -> SOM
-learn som n inputs = learn' som n 1 l s inputs []
+learn :: MonadRandom m => SOM -> Int -> [Vector Double] -> m SOM
+learn som n inputs = learn' som n 1 l s inputs
   where
-    l t = 1 / (1 +  2**(-toEnum t * 0.1))
+    l t = 1 / (1 + 2**(-toEnum t))
     s t = (toEnum t / toEnum n)^2
