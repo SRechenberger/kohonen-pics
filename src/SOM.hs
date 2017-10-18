@@ -66,9 +66,7 @@ learnStep :: SOM -> Int -> (Int -> Double) -> (Int -> Double) -> Vector Double -
 learnStep som@(SOM neurons) t l s x = SOM
     $ map (\(i,c)
       -> ( i
-         , if i == winner
-            then add c (Vector.map (l t *) (sub x c))
-            else c {- add c (Vector.map (l t *) (sub c x)) -}))
+         , add c (Vector.map ((l t * neighbour t s i winner) *) (sub x c))))
     $ neurons
   where
     winner = winnerNeuron som x
@@ -83,5 +81,5 @@ learn' som n t l s (x:xs) processed
 learn :: SOM -> Int -> [Vector Double] -> SOM
 learn som n inputs = learn' som n 1 l s inputs []
   where
-    l t = (toEnum t/toEnum n)^2-- 1 * (0.01/1)**(toEnum t / toEnum n)
-    s t = 0.5 * (0.01/0.5)**(toEnum t / toEnum n)
+    l t = (toEnum t / toEnum n)^2-- 1 * (0.01/1)**(toEnum t / toEnum n)
+    s t = (toEnum t / toEnum n)^2
